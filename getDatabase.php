@@ -1,10 +1,15 @@
 <?php
-  //to, co mamy
+
+  /*
+  I am assuming, that only numeric types are int(11), int(11) unsigned, tinyint(1) and decimal(9,2)
+  */
+  //your inputs...
   $servername = "localhost";
-  $username = "awt_live";
-  $password = "Ea1,MUb<Kk_0";
-  $dbname = "awt_live";
-  $phantom = "";
+  $username = "username";
+  $password = "password";
+  $dbname = "database name";
+  //if you want to add some numeric types, please insert them here
+  $numeric = array("int(11)", "int(11) unsigned", "tinyint(1)", "decimal(9,2)");
 
   //create connect
   $connection = mysqli_connect($servername, $username, $password, $dbname);
@@ -21,15 +26,15 @@
       $tables[] = $row[0];
   }
 
-  echo "{$phantom}CREATE DATABASE $dbname;<br><br>";
+  echo "CREATE DATABASE $dbname;<br><br>";
   echo "USE $dbname;<br><br>";
   foreach ($tables as $key => $table) {
     //load columns of curent table into an array columns
-    echo "{$phantom}CREATE TABLE {$table}(<br>";
+    echo "CREATE TABLE {$table}(<br>";
     $table_structure_query = "DESCRIBE $table";
     $table_structure_result = mysqli_query($connection, $table_structure_query);
-    $types = array("" => "");
-    $nulls = array("" => "");
+    $types = array("" => ""); //to check if input's type is numeric
+    $nulls = array("" => ""); //and if input is nullable
     //add each table to the database...
     $ctrl = 0;
 
@@ -55,27 +60,35 @@
     //now we can take data from $table
     $select_all_from_table_query = "SELECT * FROM $table";
     $select_all_from_table_result = mysqli_query($connection, $select_all_from_table_query);
-    //inserting insgle row to $table
+    //inserting single row to $table
     while($row = mysqli_fetch_assoc($select_all_from_table_result)) {
-      echo "{$phantom}INSERT INTO $table VALUES ( ";
+      echo "INSERT INTO $table VALUES ( ";
       $i = 0;
+      //need to check wheter field is nullable or not...
       foreach ($row as $key => $value) {
-        if($types[$key] == "int(11) unsigned" || $types[$key] == "int(11)" || $types[$key] == "tinyint(1)" || $types[$key] == "decimal(9,2)") {
+        if(in_array($numeric ,$types[$key])) {
           if($i != 0) echo ",";
-          if($value) echo " {$value}";
-          else if($nulls[$key] == "NULL") echo " NULL";
-          else echo "''";
+          if($value) {
+	  	echo " {$value}"; 
+	  } else if($nulls[$key] == "NULL") {
+		 echo " NULL";
+	  } else { 
+		echo "''";
+	  }
         }
         else {
           if($i != 0) echo ",";
-          if($value) echo " '{$value}'";
-          else if($nulls[$key] == "NULL") echo " NULL";
-          else echo "''";
+          if($value) {
+		echo " '{$value}'";
+	  } else if($nulls[$key] == "NULL") {
+		 echo " NULL";
+	  } else { 
+		echo "''"; 
+	  }
         }
         $i = 1;
-        ;//echo "{$key} -> {$value}, typeof({$key}) -> {$types[$key]} | "
       }
-      echo "{$phantom});<br><br>";
+      echo ");<br>";
     }
   }
 
